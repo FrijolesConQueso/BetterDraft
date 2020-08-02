@@ -1,6 +1,6 @@
 import DraftManager from './DraftManager';
 import { DraftEvents } from './types';
-import DraftNotFoundException from '../exceptions/draftExceptions/DraftNotFoundException';
+import DraftNotFoundException from '../../exceptions/draftExceptions/DraftNotFoundException';
 
 export default class DraftApi {
   private drafts: { [id: string]: DraftManager };

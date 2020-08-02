@@ -1,4 +1,4 @@
-import Exception from '../exceptions/Exception';
+import Exception from '../../exceptions/Exception';
 
 export enum DraftEvents {
   DRAFT_START = 'DRAFT_START',

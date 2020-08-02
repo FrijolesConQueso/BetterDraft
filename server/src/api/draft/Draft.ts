@@ -1,5 +1,5 @@
 import Team from './Team';
-import ChampionNotAvailableException from '../exceptions/draftExceptions/ChampionNotAvailableException';
+import ChampionNotAvailableException from '../../exceptions/draftExceptions/ChampionNotAvailableException';
 
 export default class Draft {
   private draftId: string;
