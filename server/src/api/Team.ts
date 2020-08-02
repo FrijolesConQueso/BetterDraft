@@ -26,4 +26,12 @@ export default class Team {
   public ban(champion: string) {
     this.bans.push(champion);
   }
+
+  public toJson() {
+    return {
+      teamName: this.teamName,
+      bans: [...this.bans],
+      picks: [...this.picks],
+    };
+  }
 }

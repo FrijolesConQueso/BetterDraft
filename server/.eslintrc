@@ -35,6 +35,7 @@
     "for-direction": 0,
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "next" }],
     "linebreak-style": "off",
-    "@typescript-eslint/lines-between-class-members": 0
+    "@typescript-eslint/lines-between-class-members": 0,
+    "no-await-in-loop": 0
   }
 }

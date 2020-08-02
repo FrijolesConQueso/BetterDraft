@@ -21,16 +21,29 @@ export type BanAttemptPayload = {
   champion: string;
   blue: boolean;
 };
-export type BanAcceptPayload = {};
+export type BanAcceptPayload = {
+  champion: string;
+  blue: boolean;
+};
 export type BanDeclinePayload = {
   champion: string;
   blue: boolean;
   reason: Exception;
 };
 export type Pick1StartPayload = {};
-export type PickAttemptPayload = {};
-export type PickAcceptPayload = {};
-export type PickDeclinePayload = {};
+export type PickAttemptPayload = {
+  champion: string;
+  blue: boolean;
+};
+export type PickAcceptPayload = {
+  champion: string;
+  blue: boolean;
+};
+export type PickDeclinePayload = {
+  champion: string;
+  blue: boolean;
+  reason: Exception;
+};
 export type Ban2StartPayload = {};
 export type Pick2StartPayload = {};
 export type DraftEndPayload = {};

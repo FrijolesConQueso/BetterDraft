@@ -5,13 +5,11 @@ export default class Draft {
   private draftId: string;
   private blueTeam: Team;
   private redTeam: Team;
-  private draftCounter: number;
   private usedChamps: Set<string>;
 
   constructor(blueName: string, redName: string) {
     this.blueTeam = new Team(blueName);
     this.redTeam = new Team(redName);
-    this.draftCounter = 0;
     this.usedChamps = new Set();
   }
 
@@ -31,5 +29,16 @@ export default class Draft {
     if (blue) this.blueTeam.ban(champion);
     else this.redTeam.ban(champion);
     this.usedChamps.add(champion);
+  }
+
+  public toJson() {
+    return {
+      id: this.draftId,
+      teams: {
+        blue: this.blueTeam.toJson(),
+        red: this.redTeam.toJson(),
+      },
+      usedChamps: Array.from(this.usedChamps),
+    };
   }
 }
