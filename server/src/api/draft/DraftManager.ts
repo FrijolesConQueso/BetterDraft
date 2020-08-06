@@ -1,8 +1,9 @@
 import DraftEventManager from './DraftEvents';
 import Draft from './Draft';
-import OutOfOrderException from '../exceptions/draftExceptions/OutOfOrderException';
-import { DraftEvents } from './types';
-import Exception from '../exceptions/Exception';
+import OutOfOrderException from '../../exceptions/draftExceptions/OutOfOrderException';
+import { DraftEvents, ChampSelectionPayload } from './types';
+import Exception from '../../exceptions/Exception';
+import CriticalFailure from '../../exceptions/CriticalFailure';
 
 export enum ActionType {
   BAN,
@@ -12,6 +13,24 @@ export enum ActionType {
 type Action = {
   action: ActionType,
   blue: boolean,
+};
+
+type TriEvents = {
+  accept: DraftEvents.PICK_ACCEPT | DraftEvents.BAN_ACCEPT,
+  decline: DraftEvents.PICK_DECLINE | DraftEvents.BAN_DECLINE,
+  attempt: DraftEvents.PICK_ATTEMPT | DraftEvents.BAN_ATTEMPT;
+};
+
+const pickEvents: TriEvents = {
+  accept: DraftEvents.PICK_ACCEPT,
+  decline: DraftEvents.PICK_DECLINE,
+  attempt: DraftEvents.PICK_ATTEMPT,
+};
+
+const banEvents: TriEvents = {
+  accept: DraftEvents.BAN_ACCEPT,
+  decline: DraftEvents.BAN_DECLINE,
+  attempt: DraftEvents.BAN_ATTEMPT,
 };
 
 export default class DraftManager {
@@ -38,10 +57,17 @@ export default class DraftManager {
     while (!generator.next().done) {
       while (this.draftStack.length > 0) {
         const event = this.draftStack.shift();
-        if (event.action === ActionType.BAN) {
-          await this.ban(event.blue);
-        } else if (event.action === ActionType.PICK) {
-          await this.pick(event.blue);
+        try {
+          if (event.action === ActionType.BAN) {
+            await this.ban(event.blue);
+          } else if (event.action === ActionType.PICK) {
+            await this.pick(event.blue);
+          }
+        } catch (err) {
+          let failure: CriticalFailure;
+          if (err instanceof CriticalFailure) failure = err;
+          else failure = new CriticalFailure(err);
+          this.eventManager.emit(DraftEvents.DRAFT_FAILURE, { reason: failure });
         }
       }
     }
@@ -89,51 +115,51 @@ export default class DraftManager {
   };
 
   private pick(blue: boolean) {
-    return new Promise((resolve, reject) => {
-      this.eventManager.on(DraftEvents.BAN_ATTEMPT, (payload) => {
-        this.eventManager.emit(DraftEvents.BAN_DECLINE, { ...payload, reason: new OutOfOrderException() });
-      });
-      this.eventManager.on(DraftEvents.PICK_ATTEMPT, (payload) => {
-        if (blue !== payload.blue) {
-          this.eventManager.emit(DraftEvents.PICK_DECLINE, { ...payload, reason: new OutOfOrderException() });
-        }
-        try {
-          this.draft.pick(blue, payload.champion);
-          this.eventManager.emit(DraftEvents.PICK_ACCEPT, payload);
-          resolve();
-        } catch (err) {
-          if (err instanceof Exception) {
-            this.eventManager.emit(DraftEvents.PICK_DECLINE, { ...payload, reason: err });
-          } else {
-            reject(err);
-          }
-        }
-      });
-    });
+    return this.eventListener(true, blue);
   }
 
   private async ban(blue: boolean) {
+    return this.eventListener(false, blue);
+  }
+
+  private eventListener(picking: boolean, blue: boolean) {
+    const [{ accept, decline, attempt }, { decline: oppDecline, attempt: oppAttempt }] = picking
+      ? [pickEvents, banEvents] : [banEvents, pickEvents];
     return new Promise((resolve, reject) => {
-      this.eventManager.on(DraftEvents.PICK_ATTEMPT, (payload) => {
-        this.eventManager.emit(DraftEvents.PICK_DECLINE, { ...payload, reason: new OutOfOrderException() });
-      });
-      this.eventManager.on(DraftEvents.BAN_ATTEMPT, (payload) => {
+      let off: () => void;
+      const autoFail = (payload, draft: Draft) => {
+        if (draft.id !== this.draftId) return;
+        this.eventManager.emit(oppDecline, { ...payload, reason: new OutOfOrderException() });
+      };
+      const attemptFunc = (payload: ChampSelectionPayload, draft: Draft) => {
+        if (draft.id !== this.draftId) return;
         if (blue !== payload.blue) {
-          this.eventManager.emit(DraftEvents.BAN_DECLINE, { ...payload, reason: new OutOfOrderException() });
+          this.eventManager.emit(decline, { ...payload, reason: new OutOfOrderException() });
           return;
         }
         try {
-          this.draft.ban(blue, payload.champion);
-          this.eventManager.emit(DraftEvents.BAN_ACCEPT, payload);
+          if (picking) this.draft.pick(blue, payload.champion);
+          else this.draft.ban(blue, payload.champion);
+          this.eventManager.emit(accept, payload);
+          off();
           resolve();
         } catch (err) {
           if (err instanceof Exception) {
-            this.eventManager.emit(DraftEvents.BAN_DECLINE, { ...payload, reason: err });
+            this.eventManager.emit(decline, { ...payload, reason: err });
           } else {
-            reject(err);
+            const failure = new CriticalFailure(err);
+            this.eventManager.emit(decline, { ...payload, reason: failure });
+            off();
+            reject(failure);
           }
         }
-      });
+      };
+      off = () => {
+        this.eventManager.off(oppAttempt, autoFail)
+          .off(attempt, attemptFunc);
+      };
+      this.eventManager.on(oppAttempt, autoFail)
+        .on(attempt, attemptFunc);
     });
   }
 }

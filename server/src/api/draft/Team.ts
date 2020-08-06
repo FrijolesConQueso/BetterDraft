@@ -5,6 +5,8 @@ export default class Team {
 
   constructor(teamName: string) {
     this.teamName = teamName;
+    this.bans = [];
+    this.picks = [];
   }
 
   public get name() {

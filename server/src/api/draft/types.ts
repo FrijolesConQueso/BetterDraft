@@ -1,5 +1,3 @@
-import Exception from '../../exceptions/Exception';
-
 export enum DraftEvents {
   DRAFT_START = 'DRAFT_START',
   BAN1_START = 'BAN1_START',
@@ -13,37 +11,21 @@ export enum DraftEvents {
   BAN2_START = 'BAN2_START',
   PICK2_START = 'PICK2_START',
   DRAFT_END = 'DRAFT_END',
+  DRAFT_FAILURE = 'DRAFT_FAILURE',
 }
 
-export type DraftStartPayload = {};
-export type Ban1StartPayload = {};
-export type BanAttemptPayload = {
+interface BasePayload { }
+
+export interface DraftStartPayload extends BasePayload { }
+export interface Ban1StartPayload extends BasePayload { }
+export interface ChampSelectionPayload extends BasePayload {
   champion: string;
   blue: boolean;
-};
-export type BanAcceptPayload = {
-  champion: string;
-  blue: boolean;
-};
-export type BanDeclinePayload = {
-  champion: string;
-  blue: boolean;
-  reason: Exception;
-};
-export type Pick1StartPayload = {};
-export type PickAttemptPayload = {
-  champion: string;
-  blue: boolean;
-};
-export type PickAcceptPayload = {
-  champion: string;
-  blue: boolean;
-};
-export type PickDeclinePayload = {
-  champion: string;
-  blue: boolean;
-  reason: Exception;
-};
-export type Ban2StartPayload = {};
-export type Pick2StartPayload = {};
-export type DraftEndPayload = {};
+}
+export interface DeclinePayload extends ChampSelectionPayload {
+  reason: Error;
+}
+export interface Pick1StartPayload extends BasePayload { }
+export interface Ban2StartPayload extends BasePayload { }
+export interface Pick2StartPayload extends BasePayload { }
+export interface DraftEndPayload extends BasePayload { }

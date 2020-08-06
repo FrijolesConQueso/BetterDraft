@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import Team from './Team';
 import ChampionNotAvailableException from '../../exceptions/draftExceptions/ChampionNotAvailableException';
 
@@ -8,6 +9,7 @@ export default class Draft {
   private usedChamps: Set<string>;
 
   constructor(blueName: string, redName: string) {
+    this.draftId = uuid();
     this.blueTeam = new Team(blueName);
     this.redTeam = new Team(redName);
     this.usedChamps = new Set();
@@ -38,7 +40,6 @@ export default class Draft {
         blue: this.blueTeam.toJson(),
         red: this.redTeam.toJson(),
       },
-      usedChamps: Array.from(this.usedChamps),
     };
   }
 }

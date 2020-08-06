@@ -1,1 +1,35 @@
-console.log('hello world');
+import { inspect } from 'util';
+import DraftApi from './api/draft';
+
+(async () => {
+  const api = new DraftApi();
+  const draftId = api.createDraft('blue', 'red');
+  api.startDraft(draftId);
+  console.log(api.draftToJson(draftId));
+  await api.ban(draftId, 'Aatrox', true).catch(err => console.log(err));
+  await api.ban(draftId, 'Illaoi', false).catch(err => console.log(err));
+  await api.ban(draftId, 'Mordekaiser', true).catch(err => console.log(err));
+  await api.ban(draftId, 'Wukong', false).catch(err => console.log(err));
+  await api.ban(draftId, 'Gnar', true).catch(err => console.log(err));
+  await api.ban(draftId, 'Ornn', false).catch(err => console.log(err));
+  console.log(inspect(api.draftToJson(draftId), false, null));
+  await api.pick(draftId, 'Xayah', true).catch(err => console.log(err));
+  await api.pick(draftId, 'Aphelios', false).catch(err => console.log(err));
+  await api.pick(draftId, 'Lulu', false).catch(err => console.log(err));
+  await api.pick(draftId, 'Rakan', true).catch(err => console.log(err));
+  await api.pick(draftId, 'Zac', true).catch(err => console.log(err));
+  await api.pick(draftId, 'Olaf', false).catch(err => console.log(err));
+  console.log(inspect(api.draftToJson(draftId), false, null));
+  await api.ban(draftId, 'Maokai', false).catch(err => console.log(err));
+  await api.ban(draftId, 'Malphite', true).catch(err => console.log(err));
+  await api.pick(draftId, 'foobar', false).catch(err => console.error('ERROR', err.name));
+  await api.ban(draftId, 'Sion', false).catch(err => console.log(err));
+  await api.ban(draftId, 'Kayle', true).catch(err => console.log(err));
+  console.log(inspect(api.draftToJson(draftId), false, null));
+  await api.pick(draftId, 'Orianna', false).catch(err => console.log(err));
+  await api.pick(draftId, 'foobar', false).catch(err => console.error('ERROR', err.name));
+  await api.pick(draftId, 'Pantheon', true).catch(err => console.log(err));
+  await api.pick(draftId, 'Corki', true).catch(err => console.log(err));
+  await api.pick(draftId, 'Fiora', false).catch(err => console.log(err));
+  console.log(inspect(api.draftToJson(draftId), false, null));
+})();

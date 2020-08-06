@@ -1,7 +1,7 @@
-import Exception from '../Exception';
+import Exception, { ExceptionNamespace } from '../Exception';
 
 export default class DraftException extends Exception {
   constructor(name: string, code: number, message: string) {
-    super(name, code, 'DRAFT', message);
+    super(name, code, ExceptionNamespace.DRAFT, message);
   }
 }
